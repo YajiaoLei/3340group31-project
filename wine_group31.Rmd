@@ -1,0 +1,129 @@
+---
+title: "Group 31 wine quanlity analysis"
+output: html_document
+---
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+
+
+#read data from csv file for red and white wine
+```{r setup, include=FALSE}
+winequality_red <- read.csv(file="~/Desktop/winequality-red.csv",header=TRUE,sep=",")
+winequality_white <- read.csv(file="~/Desktop/winequality-white.csv", header=TRUE,sep=",)
+```
+
+#make pairs plot for red/white wine
+```{r}
+pairs(winequality_red)
+pairs(winequality_white)
+```
+
+#take the summary for two different datasets
+```{r}
+summary(winequality_red)
+summary(winequality_white)
+```
+
+#load libraries
+```{r}
+library(ggplot2)
+library(dplyr)
+library(gridExtra)
+library(Simpsons)
+library(GGally)
+library(memisc)
+library(pander)
+library(corrplot)
+```
+
+
+#make ggplot plots and pie charts
+```{r}
+library(plotrix)
+pie(table(winequality_red$quality),col=c('green','yellow','blue','orange','cyan','purple'),  main='Red Wine quality')
+ggplot(data=winequality_red, aes(x=pH, y=alcohol))+ geom_point() + ggtitle('Alcohol and pH scatterplot')
+```
+
+#Introducing a New variable into the red wine dataset
+```{r}
+winequality_red$alcohol_level[9.50>=winequality_red$alcohol] = 'Light'
+winequality_red$alcohol_level[9.50<winequality_red$alcohol & winequality_red$alcohol < 11.4] ='Medium'
+winequality_red$alcohol_level[11.4<=winequality_red$alcohol] ='Hard'
+winequality_red$alcohol_level = as.factor(winequality_red$alcohol_level)
+
+winequality_red$alcohol_level=relevel(winequality_red$alcohol_level, 'Light')
+table(winequality_red$alcohol_level)
+```
+
+#Introducing another New ariableinto the white wine dataset
+```{r}
+winequality_white$alcohol_level[9.50>=winequality_white$alcohol] = 'Light'
+winequality_white$alcohol_level[9.50<winequality_white$alcohol & winequality_white$alcohol < 11.4] ='Medium'
+winequality_white$alcohol_level[11.4<=winequality_white$alcohol] ='Hard'
+winequality_white$alcohol_level = as.factor(winequality_white$alcohol_level)
+
+winequality_white$alcohol_level=relevel(winequality_white$alcohol_level, 'Light')
+table(winequality_white$alcohol_level)
+```
+
+#fit a Linear regression for red wine.
+```{r}
+lin_reg1 = lm(quality~.,data=winequality_red)
+options(scipen = 999)
+summary(lin_reg1)
+vif(lin_reg1)
+
+```
+
+#fit a Linear regression for significant variables for red wine.
+```{r}
+lin_reg2 = lm(quality~ winequality_red$`volatile acidity` +chlorides+winequality_red$`free sulfur dioxide`+ winequality_red$`total sulfur dioxide` +pH+sulphates+alcohol,data=winequality_red)
+summary(lin_reg2)
+vif(lin_reg2)
+
+```
+
+#take the vif score for both linear regression for red wine
+```{r}
+vif(lin_reg1,lin_reg2)
+```
+
+```{r}
+ggplot(data=winequality_red, aes(x= winequality_red$density, y=pH, color=alcohol_level))+ geom_point(position='jitter')+
+ xlab('density for red wine') + ylab('pH for red wine')+
+ ggtitle('Density and pH based alcohol level for red wine')
+
+```
+
+#fit a Linear regression for white wine
+```{r}
+lin_reg11 = lm(quality~.,data=winequality_white)
+options(scipen = 999)
+vif(lin_reg11)
+summary(lin_reg)
+```
+
+#fit a Linear regression for significant variables for white wine.
+
+```{r}
+lin_reg22 = lm(quality~ winequality_white$`volatile acidity` +chlorides+winequality_white$`free sulfur dioxide`+ winequality_white$`total sulfur dioxide` +pH+sulphates+alcohol,data=winequality_white)
+summary(lin_reg)
+vif(lin_reg22)
+
+```
+
+```{r}
+ggplot(data=winequality_white, aes(x= winequality_white$density, y=pH, color=alcohol_level))+ geom_point(position='jitter')+
+ xlab('density for white wine') + ylab('pH for white wine')+
+ ggtitle('Density and pH based alcohol level for white wine')
+```
+
+#take the vif score for both linear regression both linear regression for white wine
+```{r}
+vif(lin_reg11,lin_reg22)
+```
