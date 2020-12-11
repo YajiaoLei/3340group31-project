@@ -1,0 +1,92 @@
+---
+title: "Group 31 red wine quanlity analysis"
+author: "Yajiao Lei(B00729064) June Wang (B00806032)"
+output: html_document
+---
+
+
+## R Markdown
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+#read 
+wine data from csv file
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(readr)
+winequality_red <- read_csv("winequality-red.csv")
+```
+
+
+#make summary for our data
+```{r cars}
+summary(winequality_red)
+```
+
+
+##load required libraries
+```{r}
+library("ggplot2")
+library("dplyr")
+library("gridExtra")
+library(Simpsons)
+library(GGally)
+library(memisc)
+library(pander)
+library(corrplot)
+```
+
+
+# Make wine quality Plots and pie charts
+```{r}
+library(plotrix)
+pie(table(winequality_red$quality),col=c('green',"yellow","blue","orange","cyan","purple"),  main="Wine quality")
+ggplot(data=winequality_red, aes(x=pH, y=alcohol))+ geom_point() + ggtitle('Alcohol and pH scatterplot')
+
+```
+
+
+#find correlation information
+```{r}
+pairs(winequality_red[,5:12])
+```
+
+
+#introducing a New variable into our data set
+```{r}
+new_set = winequality_red
+new_set$alcohol_level[9.50>=new_set$alcohol] = 'Light'
+new_set$alcohol_level[9.50<new_set$alcohol & new_set$alcohol < 11.4] ='Medium'
+new_set$alcohol_level[11.4<=new_set$alcohol] ='Hard'
+new_set$alcohol_level = as.factor(new_set$alcohol_level)
+
+new_set$alcohol_level=relevel(new_set$alcohol_level, 'Light')
+table(new_set$alcohol_level)
+```
+
+
+#fit a Linear regression for our red wine dataset and make ggplot
+```{r}
+reg1 = lm(quality~.,data=winequality_red)
+options(scipen = 999)
+summary(reg1)
+```
+
+
+```{r}
+reg2 = lm(quality~ winequality_red$`volatile acidity` +chlorides+winequality_red$`free sulfur dioxide`+ winequality_red$`total sulfur dioxide` +pH+sulphates+alcohol,data=winequality_red)
+summary(reg2)
+```
+
+
+```{r}
+ggplot(data=new_set, aes(x= new_set$density, y=pH, color=alcohol_level))+ geom_point(position='jitter')+
+ xlab('density') + ylab('pH')+
+ ggtitle('Density and pH based alcohol level')
+```
+``
+```
+
+
